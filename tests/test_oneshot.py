@@ -1,6 +1,6 @@
 import asyncio
 import pytest
-from aiosync.oneshot import OneShot
+from aio_sync.oneshot import OneShot
 
 
 def test_oneshot_send_and_try_recv():

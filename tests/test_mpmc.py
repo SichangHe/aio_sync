@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import QueueShutDown
-from aiosync.mpmc import mpmc_channel
+from aio_sync.mpmc import mpmc_channel
 
 
 def test_mpmc_capacity_and_empty_full_states():

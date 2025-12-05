@@ -1,6 +1,6 @@
 import asyncio
 import pytest
-from aiosync.mutex import Mutex
+from aio_sync.mutex import Mutex
 
 
 def test_mutex_lock_and_take():

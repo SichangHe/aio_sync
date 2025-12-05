@@ -1,5 +1,5 @@
 [project]
-name = "aiosync"
+name = "aio_sync"
 version = "0.1.0"
 description = "Synchronization helpers for asyncio"
 readme = "README.md"

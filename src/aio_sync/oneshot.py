@@ -1,5 +1,6 @@
 from asyncio import Event
 from dataclasses import dataclass, field
+from typing import cast
 
 _ASSUME_ONE_SHOT_SENT_IS_TRUE_MEANS_ALREADY_SENT = None
 
@@ -66,4 +67,4 @@ class OneShot[T]:
             "OneShot `_sent` should've been set when waker is set.",
             self,
         )
-        return self._value  # type:ignore[return-value]
+        return cast(T, self._value)

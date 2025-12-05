@@ -1,5 +1,7 @@
 import asyncio
+
 import pytest
+
 from aio_sync.mutex import Mutex
 
 
@@ -11,7 +13,7 @@ def test_mutex_lock_and_take():
         taken = await mutex.take()
         assert taken == 1
         with pytest.raises(ValueError):
-            await mutex.take()
+            _ = await mutex.take()
 
     asyncio.run(_run())
 

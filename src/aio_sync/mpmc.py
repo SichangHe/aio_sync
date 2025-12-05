@@ -1,6 +1,7 @@
 from asyncio import Queue, QueueEmpty, QueueFull, QueueShutDown
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
+from typing import NamedTuple
 
 _ASSUME_QUEUE_MAXSIZE_LE0MEANS_UNLIMITED = None
 
@@ -229,10 +230,11 @@ def mpmc_channel[T](
     capacity: int | None = None,
 ) -> tuple[MPMCSender[T], MPMCReceiver[T]]:
     """Multi-producer multi-consumer (MPMC) channel with the given capacity.
+    Prefer using `MPMC[T].channel` instead.
     @param capacity: the queuing capacity, or `None` for unlimited.
     @return: (sender, receiver) pair.
     Examples:
-        >>> sender, receiver = mpmc_channel[int](2)
+        >>> sender, receiver = mpmc_channel(2)
         >>> sender.try_send(1)
         True
         >>> receiver.try_recv()
@@ -244,3 +246,38 @@ def mpmc_channel[T](
     sender = MPMCSender(_queue)
     receiver = MPMCReceiver(_queue)
     return sender, receiver
+
+
+class MPMC[T](NamedTuple):
+    """Multi-producer multi-consumer (MPMC) channel `NamedTuple` for
+    convenience of type-parametrized construction over `mpmc_channel`.
+    Examples:
+        >>> sender, receiver = MPMC[int].channel(2)
+        >>> sender.try_send(1)
+        True
+        >>> receiver.try_recv()
+        1
+    """
+
+    sender: MPMCSender[T]
+    receiver: MPMCReceiver[T]
+
+    @classmethod
+    def channel(
+        cls, capacity: int | None = None
+    ) -> tuple[MPMCSender[T], MPMCReceiver[T]]:
+        """Multi-producer multi-consumer (MPMC) channel with
+        the given capacity.
+        @param capacity: the queuing capacity, or `None` for unlimited.
+        @return: (sender, receiver) pair.
+        Examples:
+            >>> sender, receiver = MPMC[int].channel(2)
+            >>> sender.try_send(1)
+            True
+            >>> receiver.try_recv()
+            1
+        """
+        sender: MPMCSender[T]
+        receiver: MPMCReceiver[T]
+        sender, receiver = mpmc_channel(capacity)
+        return cls(sender, receiver)

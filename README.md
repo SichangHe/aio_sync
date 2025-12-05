@@ -6,7 +6,6 @@ better type checking.
 
 - `Mutex` that guard inner values.
 - `OneShot` channel for one-time communication.
-- Multi-producer multi-consumer (MPMC) channel `MPMCReceiver` `MPMCSender`
-    `mpmc_channel`.
+- Multi-producer multi-consumer (MPMC) channel `MPMC[T].channel`.
 - TODO: Broadcast channel.
 - TODO: Watch channel.

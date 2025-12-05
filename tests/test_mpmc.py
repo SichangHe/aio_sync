@@ -1,10 +1,11 @@
 import asyncio
 from asyncio import QueueShutDown
-from aio_sync.mpmc import mpmc_channel
+
+from aio_sync.mpmc import MPMC
 
 
 def test_mpmc_capacity_and_empty_full_states():
-    sender, receiver = mpmc_channel(None)
+    sender, receiver = MPMC[int].channel(None)
     assert sender.capacity() is None
     assert receiver.capacity() is None
     assert sender.is_empty()
@@ -14,7 +15,7 @@ def test_mpmc_capacity_and_empty_full_states():
 
 
 def test_mpmc_try_send_and_try_recv_behavior():
-    sender, receiver = mpmc_channel(1)
+    sender, receiver = MPMC[int].channel(1)
     assert sender.try_send(1) is True
     assert sender.try_send(2) is False
     assert receiver.try_recv() == 1
@@ -23,7 +24,7 @@ def test_mpmc_try_send_and_try_recv_behavior():
 
 def test_mpmc_send_and_recv_and_lengths():
     async def _run():
-        sender, receiver = mpmc_channel(2)
+        sender, receiver = MPMC[int].channel(2)
         assert await sender.send(3) is None
         assert await sender.send(4) is None
         assert len(sender) == 2
@@ -38,7 +39,7 @@ def test_mpmc_send_and_recv_and_lengths():
 
 def test_mpmc_shutdown_paths():
     async def _run():
-        sender, receiver = mpmc_channel(1)
+        sender, receiver = MPMC[int].channel(1)
         receiver.shutdown(immediate=True)
         send_result = await sender.send(5)
         assert isinstance(send_result, QueueShutDown)
@@ -50,7 +51,7 @@ def test_mpmc_shutdown_paths():
 
 def test_mpmc_drain_and_recv_till_closed():
     async def _run():
-        sender, receiver = mpmc_channel(None)
+        sender, receiver = MPMC[int].channel(None)
         for i in range(3):
             assert await sender.send(i) is None
         assert [item async for item in receiver.drain()] == [0, 1, 2]

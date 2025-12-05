@@ -14,9 +14,15 @@ class OneShot[T]:
 
     def send(self, value: T):
         """Send a value through the one-shot channel, immediately.
-        @raise ValueError if sending more than once."""
+        @raise ValueError if sending more than once.
+        Examples:
+            >>> channel = OneShot[int]()
+            >>> channel.send(4)
+            >>> channel.try_recv()
+            4
+        """
         if self._waker.is_set():
-            raise ValueError(f"OneShot can only send once, {self=}.")
+            raise ValueError(f"OneShot can only send once, {self}.")
         self._value = value
         _ = _ASSUME_ONE_SHOT_SENT_IS_TRUE_MEANS_ALREADY_SENT
         self._sent = True
@@ -24,7 +30,15 @@ class OneShot[T]:
 
     def try_recv(self) -> T | None:
         """Try to receive the value sent through the one-shot channel.
-        @return the value if already sent, or None if not yet sent."""
+        @return the value if already sent, or None if not yet sent.
+        Examples:
+            >>> channel = OneShot[str]()
+            >>> channel.try_recv() is None
+            True
+            >>> channel.send(1)
+            >>> channel.try_recv()
+            1
+        """
         if self._waker.is_set():
             _ = _ASSUME_ONE_SHOT_SENT_IS_TRUE_MEANS_ALREADY_SENT
             assert self._sent, (
@@ -36,8 +50,17 @@ class OneShot[T]:
             return
 
     async def recv(self) -> T:
-        """Wait to receive the value sent through the one-shot channel."""
-        await self._waker.wait()
+        """Wait to receive the value sent through the one-shot channel.
+        Examples:
+            >>> import asyncio
+            >>> async def main():
+            ...     channel = OneShot[int]()
+            ...     channel.send(9)
+            ...     return await channel.recv()
+            >>> asyncio.run(main())
+            9
+        """
+        _ = await self._waker.wait()
         _ = _ASSUME_ONE_SHOT_SENT_IS_TRUE_MEANS_ALREADY_SENT
         assert self._sent, (
             "OneShot `_sent` should've been set when waker is set.",

@@ -1,2 +1,4 @@
-ruff check --fix \
-    && basedpyright src/py_gen_server/
+#!/bin/bash
+set -euo pipefail
+ruff check --fix src tests
+basedpyright src tests

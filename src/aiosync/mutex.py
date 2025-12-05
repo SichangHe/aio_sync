@@ -19,7 +19,16 @@ class Mutex[V]:
     @asynccontextmanager
     async def lock(self):
         """Context manager that locks and yields the guarded value.
-        The caller is responsible to not use the yielded value outside!!"""
+        The caller is responsible to not use the yielded value outside!!
+        Examples:
+            >>> import asyncio
+            >>> async def main():
+            ...     mutex = Mutex(1)
+            ...     async with mutex.lock() as val:
+            ...         return val + 1
+            >>> asyncio.run(main())
+            2
+        """
         _ = _ASSUME_MUTEX_DISABLED_WHEN_INNER_IS_TAKEN
         if self._disabled:
             raise ValueError(f"Mutex inner value is taken, thus disabled, {self=}.")
@@ -28,19 +37,49 @@ class Mutex[V]:
 
     def _swap(self, new_value: V) -> V:
         """Set a new value and return the old one.
-        Should only be called when locked."""
+        Should only be called when locked.
+        Examples:
+            >>> import asyncio
+            >>> async def main():
+            ...     mutex = Mutex(1)
+            ...     async with mutex.lock4swap() as (val, swap):
+            ...         prior = swap(val + 1)
+            ...         return val, prior, mutex._inner
+            >>> asyncio.run(main())
+            (1, 2, 2)
+        """
         old_value, self._inner = self._inner, new_value
         return old_value
 
     @asynccontextmanager
     async def lock4swap(self):
         """Context manager that locks and yields (the guarded value,
-        a function that allows swapping in a new value)."""
+        a function that allows swapping in a new value).
+        The caller is responsible to not use the yielded value outside!!
+        Examples:
+            >>> import asyncio
+            >>> async def main():
+            ...     mutex = Mutex(1)
+            ...     async with mutex.lock4swap() as (val, swap):
+            ...         swap(val * 2)
+            ...     async with mutex.lock() as final:
+            ...         return final
+            >>> asyncio.run(main())
+            2
+        """
         async with self._lock:
             yield self._inner, self._swap
 
     async def take(self) -> V:
-        """Take out the inner value, marking this mutex disabled."""
+        """Take out the inner value, marking this mutex disabled.
+        Examples:
+            >>> import asyncio
+            >>> async def main():
+            ...     mutex = Mutex(1)
+            ...     return await mutex.take()
+            >>> asyncio.run(main())
+            1
+        """
         async with self.lock() as inner:
             _ = _ASSUME_MUTEX_DISABLED_WHEN_INNER_IS_TAKEN
             if self._disabled:
